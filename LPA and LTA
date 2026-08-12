@@ -1,0 +1,156 @@
+Mplus Syntax for Conditional Latent Profile Analysis 2020
+INPUT INSTRUCTIONS
+TITLE: 2020 4-class LPA with covariates via R3STEP (MI);
+DATA:
+TYPE = IMPUTATION;
+FILE = imp20_list.dat;
+
+VARIABLE:
+NAMES = R20AGE RSEX RCHRONCN RDPRES RSLEEP RPHACT
+ZIMR3 ZDLR3 ZSER73 ZAMLN3 ZNOSER3 HHIDPN;
+USEVARIABLES = ZIMR3 ZDLR3 ZSER73 ZAMLN3 ZNOSER3; ! indicators only
+IDVARIABLE = HHIDPN;
+CLASSES = c(4);
+AUXILIARY =
+R20AGE (R3STEP)
+RSEX (R3STEP)
+RCHRONCN (R3STEP)
+RDPRES (R3STEP)
+RSLEEP (R3STEP)
+RPHACT (R3STEP);
+ANALYSIS:
+TYPE = MIXTURE;
+ESTIMATOR = MLR;
+STARTS = 1000 250;
+STITERATIONS = 50;
+PROCESSORS = 4;
+MODEL:
+%OVERALL%
+! no 'c ON' lines when using R3STEP
+OUTPUT:
+TECH1 TECH8;
+SAVEDATA:
+FILE = LPA2020_MI_R3STEP_cprob.dat;
+SAVE = CPROB;
+
+Appendix F(b)
+Mplus Syntax for Latent Transition Analysis 2012-2020 (3 waves)
+INPUT INSTRUCTIONS
+TITLE: 2012–2016–2020 LTA (4 classes):1=Global High, 2=Memory Strength, 3=EF/Attention, 4=Global Low (REF)
+DATA:
+FILE = "NPR_LTA_TVC3_AGGR_final_cond -PY_2.dat";
+VARIABLE:
+NAMES:
+HHIDPN
+N12AGE NSEX NZ216
+NCHRONCN NDEPRES NSLEEP NPHACT
+NIMR1 NDLR1 NSER71 NAMLN1 NNOSER1
+PIMR2 PDLR2 PSER72 PAMLN2 PNOSER2
+RIMR3 RDLR3 RSER73 RAMLN3 RNOSER3;
+USEVARIABLES =
+N12AGE NSEX NZ216
+NCHRONCN NDEPRES NSLEEP NPHACT
+NIMR1 NDLR1 NSER71 NAMLN1 NNOSER1
+PIMR2 PDLR2 PSER72 PAMLN2 PNOSER2
+RIMR3 RDLR3 RSER73 RAMLN3 RNOSER3;
+IDVARIABLE = HHIDPN;
+MISSING = ALL (999);
+CLASSES = c1(4) c2(4) c3(4);
+ANALYSIS:
+TYPE = MIXTURE;
+ESTIMATOR = MLR;
+ALGORITHM = EM;
+STARTS = 10 5;  !(starts are less because SVALUES have been computed in step 1 and that is where starts were 1000 250, here those same SVLAUES are input)
+STITERATIONS = 50;
+PROCESSORS = 2;
+MODEL:
+%OVERALL%
+! Transitions (all logits are relative to Class 4 at each wave)
+c2 ON c1;
+c3 ON c2;
+! Covariates on class membership at each wave (relative to Class 4)
+c1 ON N12AGE NSEX NZ216 NCHRONCN NDEPRES NSLEEP NPHACT;
+c2 ON N12AGE NSEX NZ216 NCHRONCN NDEPRES NSLEEP NPHACT;
+c3 ON N12AGE NSEX NZ216 NCHRONCN NDEPRES NSLEEP NPHACT;
+MODEL c1:
+%c1#1% !1 = Global High 
+[ NIMR1*0.75258 ] (m21);
+[ NDLR1*0.81592 ] (m22);
+[ NSER71*0.73333 ] (m23);
+[ NAMLN1*0.62910 ] (m24);
+[ NNOSER1*0.50919 ] (m25);
+
+%c1#2% !2 = Memory Strength 
+[ NIMR1*0.25402 ] (m41);
+[ NDLR1*0.32067 ] (m42);
+[ NSER71*-1.05282 ] (m43);
+[ NAMLN1*-0.03502 ] (m44);
+[ NNOSER1*-0.47541 ] (m45);
+
+%c1#3% !3 = EF/Attention Strength
+[ NIMR1*-0.44653 ] (m11);
+[ NDLR1*-0.50755 ] (m12);
+[ NSER71*0.54216 ] (m13);
+[ NAMLN1*-0.17774 ] (m14);
+[ NNOSER1*-0.16468 ](m15);
+%c1#4% !4 = Global Low (reference)
+[ NIMR1*-1.11448 ] (m31);
+[ NDLR1*-1.10239 ] (m32);
+[ NSER71*-1.29981 ] (m33);
+[ NAMLN1*-0.76869 ] (m34);
+[ NNOSER1*-0.86976 ](m35);
+MODEL c2:
+%c2#1% !1 = Global High
+[ PIMR2*0.75258 ] (m21);
+[ PDLR2*0.81592 ] (m22);
+[ PSER72*0.73333 ] (m23);
+[ PAMLN2*0.62910 ] (m24);
+[ PNOSER2*0.50919 ](m25);
+%c2#2% !2 = Memory Strength 
+[ PIMR2*0.25402 ] (m41);
+[ PDLR2*0.32067 ] (m42);
+[ PSER72*-1.05282 ](m43);
+[ PAMLN2*-0.03502 ](m44);
+[ PNOSER2*-0.47541 ](m45);
+%c2#3% !3 = EF/Attention Strength 
+[ PIMR2*-0.44653 ] (m11);
+[ PDLR2*-0.50755 ] (m12);
+[ PSER72*0.54216 ] (m13);
+[ PAMLN2*-0.17774 ] (m14);
+[ PNOSER2*-0.16468 ](m15);
+%c2#4% !4 = Global Low (reference)
+[ PIMR2*-1.11448 ] (m31);
+[ PDLR2*-1.10239 ] (m32);
+[ PSER72*-1.29981 ] (m33);
+[ PAMLN2*-0.76869 ] (m34);
+[ PNOSER2*-0.86976 ](m35);
+MODEL c3:
+%c3#1% !1 = Global High
+[ RIMR3*0.75258 ] (m21);
+[ RDLR3*0.81592 ] (m22);
+[ RSER73*0.73333 ] (m23);
+[ RAMLN3*0.62910 ] (m24);
+[ RNOSER3*0.50919 ](m25);
+%c3#2% !2 = Memory Strength
+[ RIMR3*0.25402 ] (m41);
+[ RDLR3*0.32067 ] (m42);
+[ RSER73*-1.05282 ](m43);
+[ RAMLN3*-0.03502 ](m44);
+[ RNOSER3*-0.47541 ](m45);
+%c3#3% !3 = EF/Attention Strength
+[ RIMR3*-0.44653 ] (m11);
+[ RDLR3*-0.50755 ] (m12);
+[ RSER73*0.54216 ] (m13);
+[ RAMLN3*-0.17774 ] (m14);
+[ RNOSER3*-0.16468 ](m15);
+%c3#4% !4 = Global Low (reference)
+[ RIMR3*-1.11448 ] (m31);
+[ RDLR3*-1.10239 ] (m32);
+[ RSER73*-1.29981 ] (m33);
+[ RAMLN3*-0.76869 ] (m34);
+[ RNOSER3*-0.86976 ](m35);
+OUTPUT:
+TECH1 TECH8 STANDARDIZED SVALUES;
+SAVEDATA:
+FILE = LTA_results_reordered.dat;
+
